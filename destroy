@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ENV=${ENV:=staging}
+
+./aws/destroy
+
+./heroku/destroy
