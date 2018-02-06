@@ -1,8 +1,14 @@
-#!/bin/bash
+#!/bin/zsh
 
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 ENV=${ENV:=staging}
+
+if [[ $ENV == "production" ]]
+then
+  echo "production environment can't be destroyed !"
+  exit 0
+fi
 
 source $SCRIPTPATH/../config
 

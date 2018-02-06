@@ -3,6 +3,7 @@
         {
             "AllowedHeaders": [
                 "Authorization",
+                "content-disposition",
                 "content-type",
                 "x-amz-acl"
             ],

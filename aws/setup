@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 TMP="$SCRIPTPATH/tmp"
@@ -22,3 +22,5 @@ attach_policy
 create_access_key
 
 rm -rf $TMP
+
+$SCRIPTPATH/deploy

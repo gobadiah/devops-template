@@ -10,18 +10,35 @@ function heroku_login() {
 }
 
 function create_web_app() {
-  heroku apps:list -o $PROJECT | grep -q $web
+  heroku apps:list -t $PROJECT | grep -q $web
   if [ $? -ne 0 ]
   then
-    heroku create -o $PROJECT --region eu -a $web
+    heroku create -t $PROJECT --region eu -a $web
   fi
 }
 
 function destroy_web_app() {
-  heroku apps:list -o $PROJECT | grep -q $web
+  heroku apps:list -t $PROJECT | grep -q $web
   if [ $? -eq 0 ]
   then
     heroku apps:destroy -c $web -a $web
+  fi
+}
+
+function create_api_app() {
+  heroku apps:list -t $PROJECT | grep -q $api
+  if [ $? -ne 0 ]
+  then
+    heroku create -t $PROJECT --region eu -a $api
+    heroku addons:create -a $api heroku-postgresql:hobby-dev
+  fi
+}
+
+function destroy_api_app() {
+  heroku apps:list -t $PROJECT | grep -q $api
+  if [ $? -eq 0 ]
+  then
+    heroku apps:destroy -c $api -a $api
   fi
 }
 
@@ -38,23 +55,6 @@ function configure_web_app() {
   heroku config:set -a $web GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
   heroku config:set -a $web FACEBOOK_CLIENT_ID=$FACEBOOK_CLIENT_ID
   heroku config:set -a $web FACEBOOK_CLIENT_SECRET=$FACEBOOK_CLIENT_SECRET
-}
-
-function create_api_app() {
-  heroku apps:list -o $PROJECT | grep -q $api
-  if [ $? -ne 0 ]
-  then
-    heroku create -o $PROJECT --region eu -a $api
-    heroku addons:create -a $api heroku-postgresql:hobby-dev
-  fi
-}
-
-function destroy_api_app() {
-  heroku apps:list -o $PROJECT | grep -q $api
-  if [ $? -eq 0 ]
-  then
-    heroku apps:destroy -c $api -a $api
-  fi
 }
 
 function configure_api_app() {
@@ -76,6 +76,14 @@ function configure_api_app() {
   heroku config:set -a $api BUCKET=$BUCKET
   heroku config:set -a $api AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
   heroku config:set -a $api AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
+  if [[ $ENV == "production" ]]
+  then
+    heroku pg:backups:schedule DATABASE_URL --at '02:00 Europe/Paris' -a $api
+  fi
+
+  # Geo
+  heroku config:set -a $api BUILD_WITH_GEO_LIBRARIES=1
 }
 
 function deploy_web_app() {
@@ -90,7 +98,7 @@ function deploy_web_app() {
 }
 
 function deploy_api_app() {
-  pushd "$SCRIPTPATH/../../api2"
+  pushd "$SCRIPTPATH/../../api"
 
   heroku container:push -a $api web
   heroku run -a $api "python manage.py migrate" --type=worker

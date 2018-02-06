@@ -1,6 +1,12 @@
-#!/bin/bash
+#!/bin/zsh
 
 ENV=${ENV:=staging}
+
+if [[ $ENV == "production" ]]
+then
+  echo "production environment can't be destroyed !"
+  exit 0
+fi
 
 ./aws/destroy
 

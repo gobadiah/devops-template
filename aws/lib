@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 function get_user_id() {
   USER_ID=$(aws iam list-users | jq -r ".Users | map(select(.UserName == \"$USER\")) | .[0].UserId")
@@ -9,6 +9,11 @@ function get_policy_arn() {
 }
 
 function clear_access_keys() {
+  aws iam list-users | grep -q "\"$USER\""
+  if [ $? -ne 0 ]
+  then
+    return
+  fi
   aws iam list-access-keys --user-name $USER | jq -r '.AccessKeyMetadata[].AccessKeyId' | xargs -I {} aws iam delete-access-key --user-name $USER --access-key-id {}
 }
 
@@ -86,9 +91,12 @@ function attach_policy() {
 }
 
 function detach_user_policy() {
+  aws iam list-users | grep -q "\"$USER\""
+  if [ $? -ne 0 ]
+  then
+    return
+  fi
   get_policy_arn
-  echo "POLICY_ARN = $POLICY_ARN"
-  aws iam list-attached-user-policies --user-name $USER
   aws iam list-attached-user-policies --user-name $USER | grep -q "\"$POLICY\""
   if [ $? -eq 0 ]
   then

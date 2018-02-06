@@ -9,12 +9,4 @@ source $SCRIPTPATH/../config
 
 source $SCRIPTPATH/lib
 
-create_web_app
-
-configure_web_app
-
-create_api_app
-
-configure_api_app
-
-$SCRIPTPATH/deploy
+# No op
